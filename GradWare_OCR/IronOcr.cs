@@ -12,7 +12,7 @@ namespace OCR_Prototyping
     {
         public IronOcrClass()
         {
-            var file = "../../test_files/hello.pdf";
+            var file = "../../test_files/lorem ipsum.pdf";
 
             // checks if file exists
             //if (File.Exists(file))
@@ -35,10 +35,37 @@ namespace OCR_Prototyping
             //Console.ReadLine();
 
             // reads .pdf file
-            var Ocr = new IronOcr.AutoOcr();
-            var Results = Ocr.ReadPdf(@file);
-            Console.WriteLine(Results.Text);
-            Console.ReadLine();
+            var ocr = new AdvancedOcr()
+            {
+                Language = IronOcr.Languages.English.OcrLanguagePack,
+                ColorSpace = AdvancedOcr.OcrColorSpace.GrayScale,
+                EnhanceResolution = true,
+                EnhanceContrast = true,
+                CleanBackgroundNoise = true,
+                ColorDepth = 4,
+                RotateAndStraighten = false,
+                DetectWhiteTextOnDarkBackgrounds = false,
+                ReadBarCodes = false,
+                Strategy = AdvancedOcr.OcrStrategy.Fast,
+                InputImageType = AdvancedOcr.InputTypes.Document
+            };
+
+            var results = ocr.ReadPdf(@file);
+            //Console.WriteLine(results.Text);
+            //Console.ReadLine();
+
+            foreach (var page in results.Pages)
+            {
+                foreach (var paragraph in page.Paragraphs)
+                {
+                    foreach (var line in paragraph.Lines)
+                    {
+                        double line_ocr_accuracy = line.Confidence;
+                        Console.WriteLine(line_ocr_accuracy);
+                        Console.ReadLine();
+                    }
+                }
+            }            
         }
     }
 }

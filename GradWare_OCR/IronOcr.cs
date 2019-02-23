@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using IronOcr;
 
 namespace OCR_Prototyping
@@ -12,22 +9,12 @@ namespace OCR_Prototyping
     {
         public IronOcrClass()
         {
+            // file location
             var file = "../../test_files/lorem ipsum.pdf";
 
-            // checks if file exists
-            //if (File.Exists(file))
-            //{
-            //    var fileName = Path.GetFileName(file);
-            //    Console.WriteLine("file exists: {0}", fileName);
-            //    Console.ReadLine();
-            //}
-            //else
-            //{
-            //    var currentPath = Path.GetFullPath(file);
-            //    Console.WriteLine("file DNE; looking in: {0}", currentPath);
-            //    Console.ReadLine();
-            //}
-
+            // initializes list to be serialized into JSON
+            var OutputList = new List<Result>();
+            
             // reads .txt file
             //string text = File.ReadAllText(file);
             //Console.WriteLine("Contents of test.txt = {0}", text);
@@ -35,7 +22,7 @@ namespace OCR_Prototyping
             //Console.ReadLine();
 
             // reads .pdf file
-            var ocr = new AdvancedOcr()
+            var OCR = new AdvancedOcr()
             {
                 Language = IronOcr.Languages.English.OcrLanguagePack,
                 ColorSpace = AdvancedOcr.OcrColorSpace.GrayScale,
@@ -50,22 +37,35 @@ namespace OCR_Prototyping
                 InputImageType = AdvancedOcr.InputTypes.Document
             };
 
-            var results = ocr.ReadPdf(@file);
-            //Console.WriteLine(results.Text);
-            //Console.ReadLine();
+            var Result = OCR.ReadPdf(@file);
+            var ResultText = Result.Text;
+            //Console.WriteLine("Entire Result: {0}\n", resultText);
 
-            foreach (var page in results.Pages)
+            foreach (var page in Result.Pages)
             {
                 foreach (var paragraph in page.Paragraphs)
                 {
-                    foreach (var line in paragraph.Lines)
-                    {
-                        double line_ocr_accuracy = line.Confidence;
-                        Console.WriteLine(line_ocr_accuracy);
-                        Console.ReadLine();
-                    }
+                    var paragraphText = paragraph.Text;
+                    //Console.WriteLine("Result Paragraph: {0}", paragraphText);
+
+                    double paragraphConfidence = Math.Round(paragraph.Confidence, 2);
+                    //Console.WriteLine("Confidence score per paragraph: {0}\n", paragraphConfidence);
+
+                    // add values to list
+                    OutputList.Add(new Result() { Text = paragraphText, Confidence = paragraphConfidence });
+
+                    //foreach (var line in paragraph.Lines)
+                    //{
+                    //    double lineConfidence = line.Confidence;
+                    //    Console.WriteLine("Confidence score per line: {0}", lineConfidence);
+                    //}
                 }
-            }            
+            }
+            var serializer = new JavaScriptSerializer();
+            var serializedOutputList = serializer.Serialize(OutputList);
+
+            Console.WriteLine(serializedOutputList);
+            Console.ReadLine();
         }
     }
 }
